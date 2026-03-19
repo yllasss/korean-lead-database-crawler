@@ -1,77 +1,45 @@
-# 🇰🇷 Korean Corporate Intelligence Pipeline (v2.0)
-
-A high-performance data pipeline designed to extract official headcount and revenue metrics for 450+ Korean enterprises and Upstage MOU partners.
-
-## 🚀 The Evolution: Scraping vs. API
-This project transitioned from a **Playwright-based web scraper** to an **OpenDART API pipeline**.
-
-| Feature | Scraper (v1.0) | OpenDART API (v2.0) |
-| :--- | :--- | :--- |
-| **Accuracy** | Estimated (Regex) | **Official / Audited** |
-| **Success Rate** | ~7% (due to 404s/Redirects) | **~98% (Listed Companies)** |
-| **Speed** | 60s/company (DOM Load) | **<1s/company (JSON)** |
-| **Stability** | Fragile (UI Changes) | **Robust (Versioned API)** |
-
+# 🇰🇷 Korean Corporate Intelligence Pipeline (v3.0)
 
 """
-
-Korean Company Data Fetcher — powered by OpenDART API
-
-======================================================
-
-Instead of scraping IR pages (fragile, slow, low yield), this script calls
-
-Korea's official FSS OpenDART API (opendart.fss.or.kr) to get:
-
-- Employee headcount → /api/empSttus.json
-
-- Revenue → /api/fnlttSinglAcntAll.json (income statement)
-
-
-
-Why DART is better than scraping:
-
-- Structured JSON from official regulatory filings (사업보고서)
-
-- 100% of listed Korean companies are covered
-
-- Stable, versioned API — no HTML parsing, no timeouts, no bot-blocking
-
-- Rate limit is 100 req/min — easily handled with asyncio
-
-
-
-
-
-## 🛠️ Architecture
-The pipeline uses a **Hybrid Strategy**:
-1. **Primary (OpenDART):** Fetches audited financial data for KOSPI/KOSDAQ listed entities using unique 8-digit Corp Codes.
-2. **Fallback (Async Scraper):** Best-effort extraction for private startups and foreign partners (e.g., Coupang, FuriosaAI) using `aiohttp` and `BeautifulSoup`.
-
-## ⚙️ Installation & Setup
-
-1. **Clone & Environment:**
-   ```bash
-   git clone [https://github.com/your-username/korean-lead-crawler.git](https://github.com/your-username/korean-lead-crawler.git)
-   cd korean-lead-crawler
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-
-2. **API Authentication::**
-   Register at OpenDART and add your key to a .env file:
-Plaintext
-DART_API_KEY=your_40_character_key_here
-
-
-📊 Data Coverage
-Employee Metrics: Total headcount from empSttus.json (Annual Reports).
-
-Financial Metrics: Revenue (매출액/영업수익) converted to 억원 (100M KRW units).
-
-Timeframe: Automated fallback logic checks 2025 → 2024 → 2023 filings to ensure the most recent data is captured.
-
-🛡️ Ethics & Compliance
-Rate Limiting: Implements asyncio.Semaphore to stay within the 100 req/min DART threshold.
-
-User-Agent: Identifies as a research crawler to remain transparent to webmasters.
+DART Batch Filing Parser + Lead Scorer
+=======================================
+Reads the bulk TXT files from DART's batch download
+(https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do)
+and extracts the four financial statements you downloaded:
+ 
+  재무상태표   (Balance Sheet)      → Cash on Hand
+  손익계산서   (Income Statement)   → Revenue, Net Profit, Growth
+  현금흐름표   (Cash Flow)          → R&D spend, Operating CF
+  자본변동표   (Changes in Equity)  → Dividends, Equity changes
+ 
+HOW TO GET THE BATCH FILES:
+  1. Go to https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do
+  2. Select: 사업보고서 (Annual Report) → 2024 and 2025
+  3. Download each of the 4 statement ZIPs
+  4. Unzip them into a folder, e.g.:
+       ./dart_data/2024/BS/   (재무상태표)
+       ./dart_data/2024/IS/   (손익계산서)
+       ./dart_data/2024/CF/   (현금흐름표)
+       ./dart_data/2024/CE/   (자본변동표)
+       ./dart_data/2025/...   (same structure)
+ 
+  Each file inside is a tab-separated TXT with columns:
+    rcept_no, reprt_code, bsns_year, corp_code, sj_div,
+    sj_nm, account_id, account_nm, account_detail,
+    thstrm_nm, thstrm_amount, thstrm_add_amount,
+    frmtrm_nm, frmtrm_amount, frmtrm_add_amount,
+    bfefrmtrm_nm, bfefrmtrm_amount, bfefrmtrm_add_amount,
+    ord, currency
+ 
+HOW TO RUN:
+  pip install pandas tqdm
+  python dart_batch_parser.py
+ 
+OUTPUT:
+  master_leads_2026.csv   — every company with all extracted fields
+  top_cash.csv            — ranked by cash on hand
+  top_growth.csv          — ranked by YoY revenue growth
+  top_rd.csv              — ranked by R&D investment
+  summary.txt             — human-readable scout report
+"""
+ 
