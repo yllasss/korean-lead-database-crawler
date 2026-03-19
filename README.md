@@ -12,6 +12,37 @@ This project transitioned from a **Playwright-based web scraper** to an **OpenDA
 | **Speed** | 60s/company (DOM Load) | **<1s/company (JSON)** |
 | **Stability** | Fragile (UI Changes) | **Robust (Versioned API)** |
 
+
+"""
+
+Korean Company Data Fetcher — powered by OpenDART API
+
+======================================================
+
+Instead of scraping IR pages (fragile, slow, low yield), this script calls
+
+Korea's official FSS OpenDART API (opendart.fss.or.kr) to get:
+
+- Employee headcount → /api/empSttus.json
+
+- Revenue → /api/fnlttSinglAcntAll.json (income statement)
+
+
+
+Why DART is better than scraping:
+
+- Structured JSON from official regulatory filings (사업보고서)
+
+- 100% of listed Korean companies are covered
+
+- Stable, versioned API — no HTML parsing, no timeouts, no bot-blocking
+
+- Rate limit is 100 req/min — easily handled with asyncio
+
+
+
+
+
 ## 🛠️ Architecture
 The pipeline uses a **Hybrid Strategy**:
 1. **Primary (OpenDART):** Fetches audited financial data for KOSPI/KOSDAQ listed entities using unique 8-digit Corp Codes.
