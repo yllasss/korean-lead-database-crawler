@@ -31,7 +31,7 @@ ingest_and_clean.py       ← encoding fallback, statement classification, dedup
      final_target_list.py
                │
                ▼
-   MCKINSEY_MASTER_TARGETS.csv
+         MASTER_TARGETS.csv
 ```
 
 Rather than a single pipeline, the system provides three execution paths that degrade gracefully as data quality worsens. Run whichever path succeeds given your data.
