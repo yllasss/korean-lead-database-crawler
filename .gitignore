@@ -1,0 +1,13 @@
+# Data (DO NOT upload)
+2024/
+2025/
+cleaned_output/
+*.csv
+*.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Mac
+.DS_Store
